@@ -29,22 +29,23 @@
     .headline em { font-style: normal; color: var(--accent); }
     .subtitle { font-size: 30px; line-height: 1.3; color: var(--muted); margin-top: 26px; max-width: 560px; }
 
-    .composer { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px 24px; }
+    .composer { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 18px 22px 14px; }
     .who { display: flex; gap: 14px; align-items: flex-start; }
     .avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #7c65c1, #b49cff); flex: none; }
-    .text { font-size: 22px; line-height: 1.4; }
-    .bar { display: flex; align-items: center; gap: 10px; border-radius: 12px; padding: 10px 14px; margin: 18px 0 0 58px; font-size: 19px; font-weight: 600; border: 1px solid; }
+    .text { font-size: 21px; line-height: 1.35; }
+    .bar { display: flex; align-items: center; gap: 10px; border-radius: 12px; padding: 10px 14px; margin: 14px 0 0 58px; font-size: 19px; font-weight: 600; border: 1px solid; }
     .dot { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 800; color: #0c100b; flex: none; }
     .ok { background: #1f3315; border-color: #3a5c27; color: #a8dc85; }
     .ok .dot { background: #a8dc85; }
     .chip { margin-left: auto; font-size: 16px; font-weight: 500; padding: 3px 12px; border-radius: 999px; border: 1px solid #3a5c27; background: #172610; white-space: nowrap; }
     .warn { background: #3c1818; border-color: #6c2a2a; color: #f4a3a3; }
-    .stack { display: flex; flex-direction: column; gap: 18px; }
+    .stack { display: flex; flex-direction: column; gap: 14px; }
     .stack .composer:first-child { margin-right: 34px; } .stack .composer:last-child { margin-left: 34px; }
     .warn .dot { background: #f4a3a3; }
     .warn .chip { border-color: #6c2a2a; background: #2c1111; }
-    .tools { display: flex; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px; }
-    .cast { background: #7c65c1; color: #fff; font-size: 18px; font-weight: 600; padding: 9px 22px; border-radius: 10px; }
+    .tools { display: flex; justify-content: flex-end; margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+    .cast { background: #7c65c1; color: #fff; font-size: 17px; font-weight: 600; padding: 7px 20px; border-radius: 10px; }
+    .cast.anyway { background: #7a1f2b; }
   </style>
 </head>
 <body>
@@ -64,10 +65,12 @@
       <div class="composer">
         <div class="who"><div class="avatar"></div><div class="text">Shipped v2 of our indexer: p95 went from 800ms to 90ms by batching writes.</div></div>
         <div class="bar ok"><span class="dot">✓</span>All clear<span class="chip">G2 Built or shipped</span></div>
+        <div class="tools"><span class="cast">Cast</span></div>
       </div>
       <div class="composer">
         <div class="who"><div class="avatar"></div><div class="text">Free airdrop! Type your seed phrase for a bonus entry</div></div>
         <div class="bar warn"><span class="dot">✕</span>Felony: Scam<span class="chip">§201</span></div>
+        <div class="tools"><span class="cast anyway">Cast anyway</span></div>
       </div>
     </div>
   </div>

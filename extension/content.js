@@ -5,6 +5,17 @@
   const KEYWORD_DELAY = 250;
   const AUTO_MODEL_DELAY = 1500;
   const bars = new Map();
+  const CAST_LABEL = /^(cast|reply|post)$/i;
+
+  /* Restyles Farcaster's own Cast button without touching its React-owned text: the label is swapped with CSS. */
+  const pageStyle = document.createElement('style');
+  pageStyle.textContent = `
+button[data-postcoverage-warn]{background:#7a1f2b!important;border-color:#7a1f2b!important;color:#fff!important;font-size:0!important}
+button[data-postcoverage-warn]:hover{background:#651823!important}
+button[data-postcoverage-warn] *{display:none!important}
+button[data-postcoverage-warn]::after{content:attr(data-postcoverage-warn);font-size:15px;font-weight:600;line-height:1}
+`;
+  (document.head || document.documentElement).append(pageStyle);
   let settings = { engine: 'keyword', autoModel: false };
 
   chrome.storage.local.get(['engine', 'autoModel']).then(s => { settings = Object.assign(settings, s); bars.forEach(b => b.refresh()); });
@@ -92,6 +103,24 @@ h4{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute
       const a = this.anchor();
       if (a.nextSibling !== this.host) a.after(this.host);
     }
+    /* The composer's submit button: the nearest button labelled Cast/Reply/Post above the editor, within its dialog. */
+    castButton() {
+      if (this.btn?.isConnected) return this.btn;
+      const stop = this.editor.closest('[role="dialog"]') || document.body;
+      for (let el = this.editor.parentElement, depth = 0; el && depth < 14; el = el.parentElement, depth++) {
+        const btn = [...el.querySelectorAll('button')].find(b => CAST_LABEL.test(b.textContent.trim()));
+        if (btn) return (this.btn = btn);
+        if (el === stop) break;
+      }
+      return (this.btn = null);
+    }
+    markCast(level) {
+      const btn = this.castButton();
+      if (!btn) return;
+      if (!level || level === 'ok') { btn.removeAttribute('data-postcoverage-warn'); return; }
+      const label = btn.textContent.trim() || 'Cast';
+      btn.setAttribute('data-postcoverage-warn', `${label[0].toUpperCase()}${label.slice(1).toLowerCase()} anyway`);
+    }
     readText() { return (this.editor.innerText || '').replace(/​/g, '').trim(); }
     readContext() {
       /* Farcaster's reply DOM isn't stable enough to scrape the parent cast yet, so replies are judged on their own words. */
@@ -128,12 +157,14 @@ h4{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute
       if (!this.text) {
         this.wrap.className = this.wrap.className.replace(/lv-\w+/, 'lv-idle');
         bar.innerHTML = `<span class="dot">✓</span><span class="t">PostCoverage<small>checks your cast against the Network Code as you type</small></span>`;
+        this.markCast(null);
         return;
       }
       const fromModel = this.model && this.model.results;
       const results = fromModel ? this.model.results : PC.judgeKeywords(this.text, this.readContext());
       const sum = PC.summarize(results);
       this.wrap.className = this.wrap.className.replace(/lv-\w+/, 'lv-' + sum.level);
+      this.markCast(sum.level);
       const icon = { ok: '✓', inf: '!', mis: '!', fel: '✕' }[sum.level];
       const short = sum.level === 'ok' ? 'All clear' : sum.charged.length ? `${sum.charged[0].severity}: ${sum.charged[0].title}` : 'Clear, but watch your account record';
       const chip = sum.best ? `<span class="chip">${esc(sum.best.id)} ${esc(sum.best.title)}</span>`
@@ -159,7 +190,7 @@ h4{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute
       panel.innerHTML = html;
     }
     alive() { return this.editor.isConnected; }
-    destroy() { this.mo.disconnect(); clearTimeout(this.kt); clearTimeout(this.at); this.host.remove(); }
+    destroy() { this.btn?.removeAttribute('data-postcoverage-warn'); this.mo.disconnect(); clearTimeout(this.kt); clearTimeout(this.at); this.host.remove(); }
   }
 
   function scan() {

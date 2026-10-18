@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PostCoverage",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Checks your Farcaster post against the Network Code while you write it.",
   "permissions": ["storage"],
   "host_permissions": [

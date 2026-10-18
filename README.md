@@ -37,3 +37,7 @@ This pulls the latest Network Code and rebuilds `post-check.html` and `extension
 - `make social-preview` renders `assets/social-preview.png` from `assets/social-preview.html`.
 
 Unofficial. Farcaster applies the Network Code with its own model; PostCoverage gives an estimate.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
