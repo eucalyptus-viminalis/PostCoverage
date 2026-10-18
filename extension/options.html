@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PostCoverage settings</title>
+<style>
+:root{--bg:#fff;--text:#1d2118;--muted:#646b5c;--line:#e3e5de;--accent:#3b7d23;--ok:#2f7a1f}
+@media (prefers-color-scheme: dark){:root{--bg:#1c1f19;--text:#e8ebe2;--muted:#a3aa98;--line:#2f342a;--accent:#8fcf6a;--ok:#9fd67a}}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,sans-serif;padding:16px 18px;min-width:360px}
+h1{font-size:16px;margin:0 0 12px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;box-sizing:border-box;font:inherit;color:var(--text);background:transparent;border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.check{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px}
+.check input{width:auto}
+.hint{font-size:12px;color:var(--muted);margin-top:10px}
+#saved{color:var(--ok);font-size:12px;height:16px;margin-top:8px}
+code{font-size:12px}
+</style>
+</head>
+<body>
+<h1>PostCoverage</h1>
+<label for="engine">Checking</label>
+<select id="engine">
+  <option value="keyword">Keyword check only (offline, rough)</option>
+  <option value="anthropic">Anthropic API</option>
+  <option value="openai">OpenAI-compatible (Ollama, LM Studio, vLLM, OpenRouter…)</option>
+</select>
+<div class="llm">
+  <label for="model">Model</label>
+  <input id="model">
+  <div class="oa">
+    <label for="baseUrl">Base URL</label>
+    <input id="baseUrl" placeholder="http://localhost:11434/v1">
+  </div>
+  <label for="apiKey">API key</label>
+  <input id="apiKey" type="password" autocomplete="off" placeholder="Optional for local endpoints">
+  <label class="check"><input type="checkbox" id="autoModel"> Ask the model automatically when I pause typing</label>
+</div>
+<div class="hint">The keyword check always runs live as you type. With a model set up, click "Ask model" in the bar under the composer for a full Network Code check. Your key stays in this browser's extension storage. Ollama needs <code>OLLAMA_ORIGINS=chrome-extension://*</code>.</div>
+<div id="saved"></div>
+<script src="network-code.js"></script>
+<script src="engine.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

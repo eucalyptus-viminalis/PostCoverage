@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post Check</title>
+<style>
+:root{
+  --bg:#f6f7f4;--card:#fff;--line:#e3e5de;--text:#1d2118;--muted:#646b5c;--faint:#8d9384;
+  --ok:#2f7a1f;--ok-bg:#e9f4df;--ok-line:#b9dc9b;
+  --inf:#8a5a00;--inf-bg:#fbf1da;--inf-line:#f0d08a;
+  --mis:#a8460f;--mis-bg:#fbe9df;--mis-line:#f1bc9c;
+  --fel:#a32d2d;--fel-bg:#fcebeb;--fel-line:#f2b3b3;
+  --accent:#3b7d23;--radius:10px;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141612;--card:#1c1f19;--line:#2f342a;--text:#e8ebe2;--muted:#a3aa98;--faint:#7c8373;
+  --ok:#9fd67a;--ok-bg:#1f3315;--ok-line:#3a5c27;
+  --inf:#f2c766;--inf-bg:#3a2c0d;--inf-line:#6b5216;
+  --mis:#f3a777;--mis-bg:#3d2113;--mis-line:#6d3b1f;
+  --fel:#f29b9b;--fel-bg:#3c1818;--fel-line:#6c2a2a;--accent:#8fcf6a;
+}}
+:root[data-theme="dark"]{
+  --bg:#141612;--card:#1c1f19;--line:#2f342a;--text:#e8ebe2;--muted:#a3aa98;--faint:#7c8373;
+  --ok:#9fd67a;--ok-bg:#1f3315;--ok-line:#3a5c27;
+  --inf:#f2c766;--inf-bg:#3a2c0d;--inf-line:#6b5216;
+  --mis:#f3a777;--mis-bg:#3d2113;--mis-line:#6d3b1f;
+  --fel:#f29b9b;--fel-bg:#3c1818;--fel-line:#6c2a2a;--accent:#8fcf6a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 16px 60px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:22px;font-weight:600;margin:0}
+.sub{color:var(--muted);font-size:13px}
+.sub a{color:inherit}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+label{display:block;font-size:12px;color:var(--muted);margin:0 0 4px}
+textarea,input,select{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--ok-line);border-color:var(--accent)}
+textarea{resize:vertical;min-height:110px}
+.field{margin-bottom:12px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border-radius:var(--radius);border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 14px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+:root[data-theme="dark"] button.primary{color:#10200a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button.primary{color:#10200a}}
+button:disabled{opacity:.6;cursor:progress}
+.engine{font-size:12px;color:var(--muted)}
+details.settings{margin-top:12px}
+details.settings>summary{cursor:pointer;font-size:13px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+.hint{font-size:12px;color:var(--faint);margin-top:6px}
+.err{color:var(--fel);font-size:13px;margin-top:8px}
+#banner{margin:16px 0;border-radius:14px;padding:16px 18px;display:none;gap:14px;align-items:flex-start;border:1px solid}
+#banner .icon{font-size:26px;line-height:1}
+#banner .t{font-weight:600;font-size:17px}
+#banner .d{font-size:14px}
+.b-ok{background:var(--ok-bg);border-color:var(--ok-line)!important;color:var(--ok)}
+.b-inf{background:var(--inf-bg);border-color:var(--inf-line)!important;color:var(--inf)}
+.b-mis{background:var(--mis-bg);border-color:var(--mis-line)!important;color:var(--mis)}
+.b-fel{background:var(--fel-bg);border-color:var(--fel-line)!important;color:var(--fel)}
+#results{display:none;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:12px}
+h2{font-size:14px;font-weight:600;margin:0 0 6px}
+.rule{border-top:1px solid var(--line)}
+.rule>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;font-size:14px}
+.rule>summary::-webkit-details-marker{display:none}
+.rule .id{font-family:var(--mono);font-size:12px;color:var(--muted);width:40px;flex:none}
+.rule .name{flex:1}
+.rule .body{font-size:13px;color:var(--muted);padding:0 0 10px 50px}
+.rule .body p{margin:0 0 6px}
+.rule .body .q{font-size:12px;color:var(--faint);max-height:160px;overflow:auto;border-left:2px solid var(--line);padding-left:8px}
+.pill{font-size:12px;padding:2px 9px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+.p-ok{background:var(--ok-bg);color:var(--ok)}
+.p-inf{background:var(--inf-bg);color:var(--inf)}
+.p-mis{background:var(--mis-bg);color:var(--mis)}
+.p-fel{background:var(--fel-bg);color:var(--fel)}
+.p-na{background:transparent;color:var(--faint);border-color:var(--line)}
+.p-best{background:var(--accent);color:#fff}
+.rule.best .name{font-weight:600}
+.note{font-size:13px;color:var(--faint);padding:8px 0}
+footer{margin-top:22px;font-size:12px;color:var(--faint)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Post check</h1>
+  <div class="sub">Farcaster <a href="https://farcaster.xyz/~/code" target="_blank" rel="noopener">Network Code</a> v<span id="ver"></span></div>
+</header>
+
+<section class="card">
+  <div class="field">
+    <label for="ctx">Replying to (optional, used as context only)</label>
+    <input id="ctx" placeholder="Paste the post you're answering">
+  </div>
+  <div class="field">
+    <label for="post">Your post</label>
+    <textarea id="post" placeholder="Shipped v2 of our indexer: moved search to SQLite FTS and p95 dropped from 800ms to 90ms…"></textarea>
+  </div>
+  <div class="bar">
+    <span class="engine" id="engineLabel"></span>
+    <button class="primary" id="check">Check post</button>
+  </div>
+  <div class="err" id="err"></div>
+
+  <details class="settings" id="settings">
+    <summary>Engine settings</summary>
+    <div class="grid2">
+      <div>
+        <label for="engine">Engine</label>
+        <select id="engine">
+          <option value="keyword">Keyword check (offline, rough)</option>
+          <option value="anthropic">Anthropic API</option>
+          <option value="openai">OpenAI-compatible (Ollama, LM Studio, vLLM, OpenRouter…)</option>
+        </select>
+      </div>
+      <div class="llm">
+        <label for="model">Model</label>
+        <input id="model">
+      </div>
+      <div class="llm oa">
+        <label for="baseUrl">Base URL</label>
+        <input id="baseUrl" placeholder="http://localhost:11434/v1">
+      </div>
+      <div class="llm">
+        <label for="apiKey">API key</label>
+        <input id="apiKey" type="password" autocomplete="off" placeholder="Optional for local endpoints">
+      </div>
+    </div>
+    <div class="hint">Settings, including the key, are saved only in this browser's local storage. Local Ollama needs <code>OLLAMA_ORIGINS=*</code> to accept requests from this page. If the model call fails, the keyword check runs instead.</div>
+  </details>
+</section>
+
+<div id="banner" role="status"><div class="icon" id="bIcon"></div><div><div class="t" id="bTitle"></div><div class="d" id="bDesc"></div></div></div>
+
+<div id="results">
+  <section class="card">
+    <h2>Post charges</h2>
+    <div id="charges"></div>
+    <h2 style="margin-top:14px">Account-pattern signals</h2>
+    <div class="note" style="padding-top:0">A single post can't make an account charge, but it can add to one.</div>
+    <div id="acct"></div>
+  </section>
+  <section class="card">
+    <h2>Commendation fit</h2>
+    <div id="comm"></div>
+  </section>
+</div>
+
+<footer>Unofficial. The real Network Code is applied by Farcaster's own model; this gives an estimate. Rule text is copied verbatim from farcaster.xyz/~/code. Expand a row to see its definition and the exact question asked of the model.</footer>
+</main>
+
+<script>/*__NETWORK_CODE__*/</script>
+<script>/*__ENGINE__*/</script>
+<script>
+const { CODE, byId, POST_CHARGES, POST_COMMS, ACCT, SIGNAL_IDS, SEV_CLS, DEFAULT_MODELS, isYes } = PostCoverage;
+const $ = id => document.getElementById(id);
+$('ver').textContent = CODE.version;
+
+/* ---------- settings ---------- */
+const store = {
+  get(k, d) { try { return localStorage.getItem('postcheck.' + k) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('postcheck.' + k, v); } catch {} }
+};
+function loadSettings() {
+  $('engine').value = store.get('engine', 'keyword');
+  $('model').value = store.get('model.' + $('engine').value, DEFAULT_MODELS[$('engine').value] || '');
+  $('baseUrl').value = store.get('baseUrl', 'http://localhost:11434/v1');
+  $('apiKey').value = store.get('apiKey.' + $('engine').value, '');
+  syncSettings();
+}
+function syncSettings() {
+  const e = $('engine').value;
+  document.querySelectorAll('.llm').forEach(el => el.style.display = e === 'keyword' ? 'none' : '');
+  document.querySelectorAll('.oa').forEach(el => el.style.display = e === 'openai' ? '' : 'none');
+  $('engineLabel').textContent = e === 'keyword' ? 'Engine: keyword check (offline)' : 'Engine: ' + ($('model').value || 'model') + (e === 'anthropic' ? ' via Anthropic' : ' via ' + $('baseUrl').value);
+}
+$('engine').addEventListener('change', () => {
+  const e = $('engine').value; store.set('engine', e);
+  $('model').value = store.get('model.' + e, DEFAULT_MODELS[e] || '');
+  $('apiKey').value = store.get('apiKey.' + e, '');
+  syncSettings();
+});
+$('model').addEventListener('input', () => { store.set('model.' + $('engine').value, $('model').value); syncSettings(); });
+$('baseUrl').addEventListener('input', () => { store.set('baseUrl', $('baseUrl').value); syncSettings(); });
+$('apiKey').addEventListener('input', () => store.set('apiKey.' + $('engine').value, $('apiKey').value));
+loadSettings();
+
+/* ---------- render ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function ruleRow(r, pill, res, extraCls = '') {
+  return `<details class="rule ${extraCls}"><summary><span class="id">${esc(r.id)}</span><span class="name">${esc(r.title)}</span>${pill}</summary>
+  <div class="body">${res && res.reason ? `<p><strong>Why:</strong> ${esc(res.reason)}</p>` : ''}<p>${esc(r.definition)}</p><p><strong>Doesn't count:</strong> ${esc(r.doesntCount)}</p><div class="q"><strong>Asked of the model:</strong> ${esc(r.question)}</div></div></details>`;
+}
+function render(results, engineNote) {
+  const sum = PostCoverage.summarize(results);
+  const { charged, best } = sum;
+
+  $('charges').innerHTML = POST_CHARGES.map(r => {
+    const v = results[r.id];
+    const pill = isYes(v) ? `<span class="pill p-${SEV_CLS[r.severity]}">${r.severity}${v.confidence != null ? ' ' + Math.round(v.confidence) + '%' : ''}</span>` : '<span class="pill p-ok">✓ Clear</span>';
+    return ruleRow(r, pill, isYes(v) ? v : null);
+  }).join('');
+
+  $('acct').innerHTML = ACCT.map(r => {
+    if (!SIGNAL_IDS.includes(r.id)) return ruleRow(r, '<span class="pill p-na">Not judged from text</span>', null);
+    const v = results[r.id];
+    return ruleRow(r, isYes(v) ? `<span class="pill p-${SEV_CLS[r.severity]}">Adds to ${r.severity.toLowerCase()} pattern</span>` : '<span class="pill p-ok">No signal</span>', isYes(v) ? v : null);
+  }).join('');
+
+  $('comm').innerHTML = (charged.length ? '<div class="note">Commendations only count once a post is clear of charges. Fix the charges first.</div>' : '') +
+    POST_COMMS.map(r => {
+      const v = results[r.id] || {};
+      const isBest = best && best.id === r.id;
+      const pill = isYes(v) ? `<span class="pill ${isBest ? 'p-best' : 'p-ok'}">${isBest ? 'Best fit' : 'Fits'}${v.confidence != null ? ' ' + Math.round(v.confidence) + '%' : ''}</span>` : '<span class="pill p-na">No</span>';
+      return ruleRow(r, pill, isYes(v) ? v : null, isBest ? 'best' : '');
+    }).join('');
+
+  const b = $('banner');
+  const cls = sum.level, icon = { ok: '✅', inf: '⚠️', mis: '⚠️', fel: '⛔' }[cls], title = sum.title;
+  const desc = sum.desc + (charged.length ? ' Expand the rows below to see why.' : '');
+  b.className = 'b-' + cls; b.style.display = 'flex';
+  $('bIcon').textContent = icon; $('bTitle').textContent = title;
+  $('bDesc').textContent = desc + (engineNote ? ' ' + engineNote : '');
+  $('results').style.display = 'grid';
+}
+
+/* ---------- run ---------- */
+$('post').addEventListener('input', () => $('err').textContent = '');
+$('check').addEventListener('click', async () => {
+  const post = $('post').value.trim(), ctx = $('ctx').value.trim();
+  if (!post) { $('err').textContent = 'Write a post to check first.'; return; }
+  $('err').textContent = '';
+  const engine = $('engine').value, btn = $('check');
+  btn.disabled = true; btn.textContent = engine === 'keyword' ? 'Checking…' : 'Asking the model…';
+  try {
+    if (engine === 'keyword') render(PostCoverage.judgeKeywords(post, ctx), '(Keyword estimate.)');
+    else {
+      try {
+        const res = await PostCoverage.callModel({ engine, model: $('model').value, apiKey: $('apiKey').value, baseUrl: $('baseUrl').value }, post, ctx);
+        render(res, '');
+      } catch (e) {
+        $('err').textContent = 'Model call failed, showing the keyword estimate instead. ' + e.message;
+        render(PostCoverage.judgeKeywords(post, ctx), '(Keyword estimate.)');
+      }
+    }
+  } finally { btn.disabled = false; btn.textContent = 'Check post'; }
+});
+$('post').addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') $('check').click(); });
+</script>
+</body>
+</html>

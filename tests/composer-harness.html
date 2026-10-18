@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Composer harness</title>
+<style>
+body{font:15px system-ui,sans-serif;background:#fff;margin:0;padding:40px 16px}
+.modal{max-width:560px;margin:0 auto;border:1px solid #ddd;border-radius:16px;padding:16px}
+.public-DraftEditor-content{min-height:80px;outline:none;white-space:pre-wrap}
+.toolbar{display:flex;justify-content:space-between;margin-top:8px;border-top:1px solid #eee;padding-top:8px}
+.toolbar button{background:#7c65c1;color:#fff;border:0;border-radius:8px;padding:6px 14px}
+</style>
+</head>
+<body>
+<!-- Mimics the Draft.js markup Farcaster's composer renders, with a stub chrome.* API. -->
+<div class="modal" role="dialog">
+  <div class="DraftEditor-root">
+    <div class="DraftEditor-editorContainer">
+      <div class="notranslate public-DraftEditor-content" contenteditable="true" role="textbox"><div data-contents="true"></div></div>
+    </div>
+  </div>
+  <div class="toolbar"><span>📎 🖼</span><button>Cast</button></div>
+</div>
+<script>
+const _store = JSON.parse(new URLSearchParams(location.search).get('settings') || '{}');
+window.chrome = {
+  storage: { local: { get: async () => _store, set: async v => Object.assign(_store, v) }, onChanged: { addListener() {} } },
+  runtime: {
+    sendMessage: async msg => {
+      window._lastMessage = msg;
+      if (msg.type !== 'postcoverage:model') return;
+      await new Promise(r => setTimeout(r, 300));
+      return { ok: true, model: 'stub-model', results: Object.assign(PostCoverage.judgeKeywords(msg.post, msg.ctx), { G4: { answer: 'yes', confidence: 88, reason: 'Stub: reasoned argument.' } }) };
+    }
+  }
+};
+</script>
+<script src="../extension/network-code.js"></script>
+<script src="../extension/engine.js"></script>
+<script src="../extension/content.js"></script>
+</body>
+</html>
