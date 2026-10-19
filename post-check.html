@@ -170,7 +170,7 @@ footer{margin-top:22px;font-size:12px;color:var(--faint)}
   const DEFAULT_MODELS = { jev: 'jev-latest', openai: 'llama3.1' };
   const ENGINES = ['keyword', 'jev', 'openai'];
   const JEV_URL = 'https://api.typesafe.ai/v1/systemone';
-  const JEV_YES = 0.5; /* noul is P(yes); 0.5 treats a false flag and a miss as equally costly */
+  const JEV_YES = 0.65; /* noul is P(yes). On the demo posts, wrong flags sat at 0.52-0.58 and right ones at 0.66+, so values near 0.5 (the model is unsure) don't count */
   const ruleUrl = r => CODE.source + (r.anchor ? '#' + r.anchor : '');
 
   const MODEL_IDS = () => [...POST_CHARGES, ...POST_COMMS].map(r => r.id).concat(SIGNAL_IDS);

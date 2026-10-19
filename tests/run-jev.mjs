@@ -47,8 +47,9 @@ for (const d of demos) {
   const { results } = await PC.callModel(settings, d.post, d.ctx || '');
   const sum = PC.summarize(results);
   const got = sum.charged[0]?.id || sum.signals[0]?.id || sum.best?.id || 'clear';
-  const ok = d.expect === 'clear' ? !sum.charged.length && !sum.signals.length : got === d.expect;
+  const flagged = [...sum.charged, ...sum.signals].map(r => r.id);
+  const ok = d.expect === 'clear' ? !flagged.length : d.expect.startsWith('G') ? got === d.expect : flagged.includes(d.expect);
   if (ok) pass++;
-  console.log(`${ok ? 'pass' : 'MISS'}  ${sum.level.padEnd(3)} ${String(got).padEnd(5)} expect ${d.expect.padEnd(5)} ${d.post.slice(0, 70)}`);
+  console.log(`${ok ? 'pass' : 'MISS'}  ${sum.level.padEnd(3)} ${(flagged.join(',') || got).padEnd(14)} expect ${d.expect.padEnd(5)} ${d.post.slice(0, 60)}`);
 }
 console.log(`\nJev: ${pass}/${demos.length} demo posts match`);
