@@ -11,10 +11,10 @@ Checks a Farcaster post against the [Network Code](https://farcaster.xyz/~/code)
 
 To update, download the new zip, replace the folder's contents, and click reload on PostCoverage in `chrome://extensions`.
 
-The bar runs a quick keyword estimate as you type. For a full check using the Network Code's own questions, click the extension icon and pick a model:
+The bar runs a quick keyword estimate as you type. For a full check, click the extension icon and pick a model:
 
-- **Anthropic API**: paste an API key.
-- **OpenAI-compatible**: Ollama, LM Studio, vLLM, OpenRouter or OpenAI. Local Ollama must be started with `OLLAMA_ORIGINS=chrome-extension://*`.
+- **Jev by TypeSafe (recommended)**: paste a [TypeSafe](https://typesafe.ai) API key. Each Network Code question is sent to Jev word for word as a yes/no question, and it answers with a probability. A check costs roughly $0.0004.
+- **Advanced: local or OpenAI-compatible model**: Ollama, LM Studio, vLLM, OpenRouter or OpenAI. Local Ollama must be started with `OLLAMA_ORIGINS=chrome-extension://*`.
 
 Then click **Ask model** in the bar, or turn on automatic checks when you pause typing.
 
@@ -32,7 +32,8 @@ This pulls the latest Network Code and rebuilds `post-check.html` and `extension
 
 ## Development
 
-- `make test` runs the demo posts in `tests/demo-posts.json` through the keyword check.
+- `make test` runs the demo posts in `tests/demo-posts.json` through the keyword check, and checks the Jev request wiring against a stub.
+- `TYPESAFE_API_KEY=... make test-jev` runs the demo posts through the real Jev API.
 - `make package` builds the release zip in `dist/`.
 - `make social-preview` renders `assets/social-preview.png` from `assets/social-preview.html`.
 

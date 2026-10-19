@@ -112,8 +112,8 @@ footer{margin-top:22px;font-size:12px;color:var(--faint)}
         <label for="engine">Engine</label>
         <select id="engine">
           <option value="keyword">Keyword check (offline, rough)</option>
-          <option value="anthropic">Anthropic API</option>
-          <option value="openai">OpenAI-compatible (Ollama, LM Studio, vLLM, OpenRouter…)</option>
+          <option value="jev">Jev by TypeSafe (recommended)</option>
+          <option value="openai">Advanced: local or OpenAI-compatible model (Ollama, LM Studio, OpenRouter…)</option>
         </select>
       </div>
       <div class="llm">
@@ -126,10 +126,10 @@ footer{margin-top:22px;font-size:12px;color:var(--faint)}
       </div>
       <div class="llm">
         <label for="apiKey">API key</label>
-        <input id="apiKey" type="password" autocomplete="off" placeholder="Optional for local endpoints">
+        <input id="apiKey" type="password" autocomplete="off" placeholder="TypeSafe key, or optional for local endpoints">
       </div>
     </div>
-    <div class="hint">Settings, including the key, are saved only in this browser's local storage. Local Ollama needs <code>OLLAMA_ORIGINS=*</code> to accept requests from this page. If the model call fails, the keyword check runs instead.</div>
+    <div class="hint">Settings, including the key, are saved only in this browser's local storage. Jev costs roughly $0.0004 per check; get a key at typesafe.ai. Local Ollama needs <code>OLLAMA_ORIGINS=*</code> to accept requests from this page. If the model call fails, the keyword check runs instead.</div>
   </details>
 </section>
 
@@ -165,7 +165,7 @@ const store = {
   set(k, v) { try { localStorage.setItem('postcheck.' + k, v); } catch {} }
 };
 function loadSettings() {
-  $('engine').value = store.get('engine', 'keyword');
+  $('engine').value = PostCoverage.ENGINES.includes(store.get('engine')) ? store.get('engine') : 'keyword';
   $('model').value = store.get('model.' + $('engine').value, DEFAULT_MODELS[$('engine').value] || '');
   $('baseUrl').value = store.get('baseUrl', 'http://localhost:11434/v1');
   $('apiKey').value = store.get('apiKey.' + $('engine').value, '');
@@ -175,7 +175,7 @@ function syncSettings() {
   const e = $('engine').value;
   document.querySelectorAll('.llm').forEach(el => el.style.display = e === 'keyword' ? 'none' : '');
   document.querySelectorAll('.oa').forEach(el => el.style.display = e === 'openai' ? '' : 'none');
-  $('engineLabel').textContent = e === 'keyword' ? 'Engine: keyword check (offline)' : 'Engine: ' + ($('model').value || 'model') + (e === 'anthropic' ? ' via Anthropic' : ' via ' + $('baseUrl').value);
+  $('engineLabel').textContent = e === 'keyword' ? 'Engine: keyword check (offline)' : 'Engine: ' + ($('model').value || 'model') + (e === 'jev' ? ' via TypeSafe' : ' via ' + $('baseUrl').value);
 }
 $('engine').addEventListener('change', () => {
   const e = $('engine').value; store.set('engine', e);
@@ -239,7 +239,7 @@ $('check').addEventListener('click', async () => {
     if (engine === 'keyword') render(PostCoverage.judgeKeywords(post, ctx), '(Keyword estimate.)');
     else {
       try {
-        const res = await PostCoverage.callModel({ engine, model: $('model').value, apiKey: $('apiKey').value, baseUrl: $('baseUrl').value }, post, ctx);
+        const { results: res } = await PostCoverage.callModel({ engine, model: $('model').value, apiKey: $('apiKey').value, baseUrl: $('baseUrl').value }, post, ctx);
         render(res, '');
       } catch (e) {
         $('err').textContent = 'Model call failed, showing the keyword estimate instead. ' + e.message;

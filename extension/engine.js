@@ -11,8 +11,37 @@
   const SEV = { Infraction: 1, Misdemeanor: 2, Felony: 3 };
   const SEV_CLS = { Infraction: 'inf', Misdemeanor: 'mis', Felony: 'fel' };
   const SEV_EFFECT = { Infraction: 'typically result in warnings', Misdemeanor: 'typically result in suspensions', Felony: 'typically result in bans' };
-  const DEFAULT_MODELS = { anthropic: 'claude-haiku-5-5', openai: 'llama3.1' };
+  const DEFAULT_MODELS = { jev: 'jev-latest', openai: 'llama3.1' };
+  const ENGINES = ['keyword', 'jev', 'openai'];
+  const JEV_URL = 'https://api.typesafe.ai/v1/systemone';
+  const JEV_YES = 0.5; /* noul is P(yes); 0.5 treats a false flag and a miss as equally costly */
   const ruleUrl = r => CODE.source + (r.anchor ? '#' + r.anchor : '');
+
+  const MODEL_IDS = () => [...POST_CHARGES, ...POST_COMMS].map(r => r.id).concat(SIGNAL_IDS);
+  const SIGNAL_FRAME = 'These are normally asked across many recent posts. Here you see only one post, so answer: does THIS post look like one of the posts that would build toward a yes on this question?';
+
+  /* ---------- Jev engine: one noul question per rule, verbatim ---------- */
+  function jevRequest(post, ctx, model) {
+    const questions = {};
+    for (const id of MODEL_IDS()) {
+      const r = byId[id];
+      const instructions = { question: r.question, context_rule: CODE.replyContextNote };
+      if (SIGNAL_IDS.includes(id)) instructions.scope = SIGNAL_FRAME;
+      /* criteria reuse the code's own definition and "Doesn't count" text for what a yes and a no mean */
+      questions[id] = { type: 'noul', instructions, criteria: { true: r.definition, false: "Doesn't count: " + r.doesntCount } };
+    }
+    const state = { post }; if (ctx) state.replying_to = ctx;
+    return { state, model, questions };
+  }
+  function jevResults(data) {
+    const out = {};
+    for (const [id, a] of Object.entries(data.answers || {})) {
+      if (typeof a?.noul !== 'number') continue;
+      out[id] = { answer: a.noul >= JEV_YES ? 'yes' : 'no', confidence: Math.round(a.noul * 100) };
+    }
+    if (!Object.keys(out).length) throw new Error('Jev returned no answers.');
+    return out;
+  }
 
   /* ---------- LLM engine: verbatim Network Code prompts ---------- */
   function systemPrompt() {
@@ -24,10 +53,10 @@
       '## Post charges', POST_CHARGES.map(q).join('\n\n'),
       '## Post commendations', POST_COMMS.map(q).join('\n\n'),
       '## Account-pattern questions',
-      'These are normally asked across many recent posts. Here you see only one post, so answer: does THIS post look like one of the posts that would build toward a yes on this question?',
+      SIGNAL_FRAME,
       ACCT.filter(r => SIGNAL_IDS.includes(r.id)).map(q).join('\n\n'),
       '## Output',
-      `Reply with JSON only, no prose, shaped as {"results":{"<id>":{"answer":"yes"|"no","confidence":0-100,"reason":"one short sentence"}}} with one entry for every id: ${[...POST_CHARGES, ...POST_COMMS].map(r => r.id).concat(SIGNAL_IDS).join(', ')}.`
+      `Reply with JSON only, no prose, shaped as {"results":{"<id>":{"answer":"yes"|"no","confidence":0-100,"reason":"one short sentence"}}} with one entry for every id: ${MODEL_IDS().join(', ')}.`
     ].join('\n\n');
   }
   function userPrompt(post, ctx) {
@@ -39,20 +68,20 @@
     const o = JSON.parse(text.slice(s, e + 1));
     return o.results || o;
   }
-  /* settings: {engine: 'anthropic'|'openai', model, apiKey, baseUrl} */
+  /* settings: {engine: 'jev'|'openai', model, apiKey, baseUrl}. Resolves {results, model}. */
   async function callModel(settings, post, ctx) {
     const model = (settings.model || DEFAULT_MODELS[settings.engine] || '').trim();
     const key = (settings.apiKey || '').trim();
-    if (settings.engine === 'anthropic') {
-      if (!key) throw new Error('Add an Anthropic API key in settings.');
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+    if (settings.engine === 'jev') {
+      if (!key) throw new Error('Add a TypeSafe API key in settings.');
+      const res = await fetch(JEV_URL, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model, max_tokens: 2500, system: systemPrompt(), messages: [{ role: 'user', content: userPrompt(post, ctx) }] })
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },
+        body: JSON.stringify(jevRequest(post, ctx, model))
       });
-      if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      if (!res.ok) throw new Error(`TypeSafe API ${res.status}: ${(await res.text()).slice(0, 200)}`);
       const data = await res.json();
-      return parseJson(data.content.map(c => c.text || '').join(''));
+      return { results: jevResults(data), model: data.model || model };
     }
     if (settings.engine === 'openai') {
       const base = (settings.baseUrl || 'http://localhost:11434/v1').trim().replace(/\/+$/, '');
@@ -62,7 +91,7 @@
       if (res.status === 400) res = await send(body);
       if (!res.ok) throw new Error(`Endpoint ${res.status}: ${(await res.text()).slice(0, 200)}`);
       const data = await res.json();
-      return parseJson(data.choices[0].message.content);
+      return { results: parseJson(data.choices[0].message.content), model: data.model || model };
     }
     throw new Error('No model engine selected.');
   }
@@ -162,5 +191,5 @@
     return { level, title, desc, charged, signals, comms, best };
   }
 
-  root.PostCoverage = { CODE, RULES, byId, POST_CHARGES, POST_COMMS, ACCT, SIGNAL_IDS, SEV, SEV_CLS, DEFAULT_MODELS, ruleUrl, isYes, systemPrompt, userPrompt, parseJson, callModel, judgeKeywords, summarize };
+  root.PostCoverage = { CODE, RULES, byId, POST_CHARGES, POST_COMMS, ACCT, SIGNAL_IDS, SEV, SEV_CLS, DEFAULT_MODELS, ENGINES, jevRequest, jevResults, ruleUrl, isYes, systemPrompt, userPrompt, parseJson, callModel, judgeKeywords, summarize };
 })(globalThis);

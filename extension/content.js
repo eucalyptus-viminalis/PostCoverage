@@ -25,7 +25,7 @@ button[data-postcoverage-warn]::after{content:attr(data-postcoverage-warn);font-
   });
 
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const hasModel = () => settings.engine === 'anthropic' || settings.engine === 'openai';
+  const hasModel = () => settings.engine === 'jev' || settings.engine === 'openai';
 
   function isDark() {
     const m = getComputedStyle(document.body).backgroundColor.match(/\d+/g);

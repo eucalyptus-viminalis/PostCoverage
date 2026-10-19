@@ -1,4 +1,4 @@
-.PHONY: build fetch test package social-preview
+.PHONY: build fetch test test-jev package social-preview
 
 SOCIAL_HTML ?= assets/social-preview.html
 SOCIAL_PNG ?= assets/social-preview.png
@@ -12,6 +12,10 @@ fetch:
 
 test: build
 	node tests/run-keyword.mjs
+	TYPESAFE_API_KEY= node tests/run-jev.mjs
+
+test-jev: build
+	node tests/run-jev.mjs
 
 package: test
 	bash scripts/package_extension.sh

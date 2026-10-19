@@ -22,8 +22,8 @@ code{font-size:12px}
 <label for="engine">Checking</label>
 <select id="engine">
   <option value="keyword">Keyword check only (offline, rough)</option>
-  <option value="anthropic">Anthropic API</option>
-  <option value="openai">OpenAI-compatible (Ollama, LM Studio, vLLM, OpenRouter…)</option>
+  <option value="jev">Jev by TypeSafe (recommended)</option>
+  <option value="openai">Advanced: local or OpenAI-compatible model (Ollama, LM Studio, OpenRouter…)</option>
 </select>
 <div class="llm">
   <label for="model">Model</label>
@@ -33,10 +33,10 @@ code{font-size:12px}
     <input id="baseUrl" placeholder="http://localhost:11434/v1">
   </div>
   <label for="apiKey">API key</label>
-  <input id="apiKey" type="password" autocomplete="off" placeholder="Optional for local endpoints">
+  <input id="apiKey" type="password" autocomplete="off" placeholder="TypeSafe key, or optional for local endpoints">
   <label class="check"><input type="checkbox" id="autoModel"> Ask the model automatically when I pause typing</label>
 </div>
-<div class="hint">The keyword check always runs live as you type. With a model set up, click "Ask model" in the bar under the composer for a full Network Code check. Your key stays in this browser's extension storage. Ollama needs <code>OLLAMA_ORIGINS=chrome-extension://*</code>.</div>
+<div class="hint">The keyword check always runs live as you type. With a model set up, click "Ask model" in the bar under the composer for a full Network Code check. Jev answers each Network Code question as a calibrated yes/no, at roughly $0.0004 per check. Get a key at <a href="https://typesafe.ai" target="_blank" rel="noopener">typesafe.ai</a>. Your key stays in this browser's extension storage. Local Ollama needs <code>OLLAMA_ORIGINS=chrome-extension://*</code>.</div>
 <div id="saved"></div>
 <script src="network-code.js"></script>
 <script src="engine.js"></script>
